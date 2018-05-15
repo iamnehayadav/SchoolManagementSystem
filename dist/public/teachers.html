@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>School Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <script src="./lib/vue.js"></script>
+    <script src="./lib/axios.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <!-- Brand/logo -->
+        <a class="navbar-brand" href="index.html">Home</a>
+
+        <!-- Links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="course.html">Course</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="subject.html">Subject</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="student.html">Student</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="teachers.html">Teacher</a>
+            </li>
+        </ul>
+    </nav>
+
+
+    <div class="teacher">
+        <header class="user__header">
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3219/logo.svg" alt="" />
+            <h1 class="user__title">
+                <h2>List Of Teacher</h2>
+            </h1>
+        </header>
+
+        <form class="cartform">
+            <table class="cart-table">
+                <thead>
+                    <th>Teachers</th>
+                </thead>
+                <tbody>
+
+                    <tr class="form__group" v-for="teacher in teachers">
+                        <td class="cart-item">
+                            {{teacher.name}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <div class='user'>
+            <form class="form">
+                <div class="form__group">
+                    <select id="subject-name" v-model="selectedSubject" class="form__input">
+                        <option value="">--Select Subject--</option>
+                        <option v-for="subject in subjects" v-bind:value="subject.id">{{subject.name}}</option>
+                    </select>
+                </div>
+                <div class="form__group">
+                    <input type="text" placeholder="Teacher Name" class="form__input" v-model="teacherName" required/>
+                    <button class="btn" type="button" v-on:click="addTeacher">Add Teacher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        let app = new Vue({
+            el: ".teacher",
+            data: {
+                teacherName: '',
+                teachers: [],
+                subjects: [],
+                selectedSubject: ''
+            },
+            methods: {
+                getTeachers: function () {
+                    console.log("called getTeachers")
+                    axios.get('/teachers/')
+                        .then(function (res) {
+                            let data = res.data;
+                            for (let i in data) {
+                                app.teachers.push(data[i]);
+                                //console.log(data[i]);
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error)
+                        })
+
+                },
+                addTeacher: function () {
+                    console.log("chlla hai ye to")
+                    if (app.teacherName == '') {
+                        alert('Enter Teacher Name');
+                        return false;
+                    }
+                    let options = document.getElementById('subject-name').options;
+                    for (let index = 0; index < options.length - 1; index++) {
+                        if (options[index].selected) {
+                            app.selectedSubject = options[index].value;
+                            break;
+                        }
+                    }
+                    axios.post('/teachers/', {
+                            name: app.teacherName,
+                            subjectId: app.selectedSubject
+                        })
+                        .then(function (res) {
+                            if (res.data.success) {
+                                alert('Teacher added successfully !!');
+                            }
+                        })
+                        .then(() => {
+                            this.teachers = [];
+                            this.getTeachers();
+                        })
+                        .catch(function (error) {
+                            alert('Error adding Course !!');
+                        })
+                },
+
+                getSubjects: function () {
+                    console.log("called getSubjects")
+                    axios.get('/subjects/')
+                        .then(function (res) {
+                            let data = res.data;
+                            for (let i in data) {
+                                app.subjects.push(data[i]);
+                                //console.log(data[i]);
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error)
+                        })
+
+                },
+            },
+            beforeMount() {
+                this.getTeachers()
+                this.getSubjects()
+            }
+
+        });
+    </script>
+</body>
+
+</html>
